@@ -38,6 +38,7 @@ export default class Fiber {
 			},
 			onFatal: () => {},
 			onFinish: () => {},
+			onPopState: () => {},
 			onPushState: () => {},
 			onReplaceState: () => {},
 			onStart: () => {},
@@ -66,6 +67,9 @@ export default class Fiber {
 
 		// set initial state
 		this.setState(state);
+
+		// set up event handlers
+		window.addEventListener("popstate", this.popState.bind(this));
 	}
 
 	/**
@@ -295,6 +299,11 @@ export default class Fiber {
 		} finally {
 			this.options.onFinish(options);
 		}
+	}
+
+	async popState(event) {
+		await this.setState(event.state);
+		this.options.onPopState(event, this.state);
 	}
 
 	/**
