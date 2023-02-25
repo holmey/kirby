@@ -303,7 +303,12 @@ export default class Fiber {
 
 	async popState(event) {
 		this.options.onPopState(event);
-		this.go(event.state.$url);
+
+		if (event.state?.$url) {
+			this.go(event.state.$url);
+		} else {
+			this.reload();
+		}
 	}
 
 	/**
