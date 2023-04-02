@@ -6,6 +6,7 @@ use Exception;
 use Kirby\Cms\App;
 use Kirby\Cms\Helpers;
 use Kirby\Cms\Page;
+use Kirby\Toolkit\A;
 use Kirby\Toolkit\Str;
 use Throwable;
 
@@ -309,14 +310,22 @@ class Dir
 			$contentExtension = App::instance()->defaultLanguage()->code() . '.' . $contentExtension;
 		}
 
-		// find the first content file inside the child directory
-		// that matches any page model name to determine the model
-		$models  = implode(',', array_keys(Page::$models));
-		$before  = $root . '/';
-		$after   = '.' . $contentExtension;
-		$pattern = $before . '{' . $models . '}' . $after;
-		if ($models = glob($pattern, GLOB_NOSORT|GLOB_BRACE)) {
-			$model = Str::between($models[0], $before, $after);
+		if (count(Page::$models) < 6) {
+			foreach (Page::$models as $modelName => $modelClass) {
+				if (file_exists($root . '/' . $modelName . '.' . $contentExtension) === true) {
+					$model = $modelName;
+					break;
+				}
+			}
+		} else {
+			// find the first content file inside the child directory
+			// that matches any page model name to determine the model
+			$files  = scandir($root, SCANDIR_SORT_NONE);
+			$models = array_map(
+				fn ($model) => $model . $contentExtension,
+				array_keys(Page::$models)
+			);
+			$model  = array_intersect($files, $models)[0] ?? null;
 		}
 
 		return  [
